@@ -39,7 +39,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  final _formKey = GlobalKey<FormState>();
   TextEditingController _todoItemTextFieldController = TextEditingController();
 
   final List<TodoItem> _todoList = [
@@ -59,61 +59,78 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _deleteItem(int itemIndex){
+  void _deleteItem(int itemIndex) {
     setState(() {
       _todoList.removeAt(itemIndex);
     });
   }
 
-  void _negateItemStatus(int itemIndex){
+  void _negateItemStatus(int itemIndex) {
     setState(() {
       _todoList[itemIndex] = _todoList[itemIndex].copyWith(isClear: !_todoList[itemIndex].isClear);
     });
   }
 
-  void _openDeletePrompt(int itemIndex){
-    showDialog(context: context, builder: (context){
-      return AlertDialog(
-        title: Text('Are you sure you wanto to delete?'),
-        actions: [
-          TextButton(
-            child: Text('Cancel'),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          TextButton(
-            child: Text('Yes'),
-            onPressed: () {
-              _deleteItem(itemIndex);
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      );
-    });
+  void _openDeletePrompt(int itemIndex) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Are you sure you wanto to delete?'),
+            actions: [
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              TextButton(
+                child: Text('Yes'),
+                onPressed: () {
+                  _deleteItem(itemIndex);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        });
   }
 
-  void _openAddItemDialog(){
+  void _openAddItemDialog() {
     _todoItemTextFieldController.clear();
-    showDialog(context: context, builder: (context){
-      return AlertDialog(
-        title: Text('Add new todo item'),
-        content: TextField(
-          controller: _todoItemTextFieldController,
-          decoration: InputDecoration(hintText: "Type your new todo"),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Add'),
-            onPressed: () {
-              _addNewItem(_todoItemTextFieldController.text);
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      );
-    });
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Add new todo item'),
+            content: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: TextFormField(
+                controller: _todoItemTextFieldController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Todo item cannot be empty.';
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(hintText: "Type your new todo"),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Add'),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _addNewItem(_todoItemTextFieldController.text);
+                    Navigator.pop(context);
+                  }
+
+                },
+              ),
+            ],
+          );
+        });
   }
 
   @override
@@ -124,6 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
         centerTitle: true,
       ),
       body: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 10),
         itemCount: _todoList.length ?? 0,
         itemBuilder: (context, i) {
           return ListTile(
@@ -135,12 +153,13 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             leading: CircleAvatar(
-              child: Text(_todoList[i].name.substring(0, 1)),
+              child: Text(_todoList[i].name.substring(0, 1).toUpperCase()),
             ),
-            onTap: (){
+            visualDensity: VisualDensity.compact,
+            onTap: () {
               _negateItemStatus(i);
             },
-            onLongPress: (){
+            onLongPress: () {
               _openDeletePrompt(i);
             },
           );
