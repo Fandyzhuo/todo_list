@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo_list/model/todo_item.dart';
 
 void main() {
   runApp(const MyApp());
@@ -39,13 +40,51 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
+  TextEditingController _todoItemTextFieldController = TextEditingController();
+
+  final List<TodoItem> _todoList = [
+    TodoItem(name: 'Build flutter app'),
+    TodoItem(name: 'Get some milk', isClear: true),
+    TodoItem(name: 'Tweet about progress'),
+  ];
+
   @override
   void initState() {
     super.initState();
   }
 
-  void _addNewItem() {
-    setState(() {});
+  void _addNewItem(String taskName) {
+    setState(() {
+      _todoList.add(TodoItem(name: taskName));
+    });
+  }
+
+  void _negateItemStatus(int itemIndex){
+    setState(() {
+      _todoList[itemIndex] = _todoList[itemIndex].copyWith(isClear: !_todoList[itemIndex].isClear);
+    });
+  }
+
+  void _openAddItemDialog(){
+    _todoItemTextFieldController.clear();
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text('Add new todo item'),
+        content: TextField(
+          controller: _todoItemTextFieldController,
+          decoration: InputDecoration(hintText: "Type your new todo"),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Add'),
+            onPressed: () {
+              _addNewItem(_todoItemTextFieldController.text);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    });
   }
 
   @override
@@ -55,10 +94,30 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         centerTitle: true,
       ),
-      body: Container(),
+      body: ListView.builder(
+        itemCount: _todoList.length ?? 0,
+        itemBuilder: (context, i) {
+          return ListTile(
+            title: Text(
+              _todoList[i].name,
+              style: TextStyle(
+                decoration: _todoList[i].isClear ? TextDecoration.lineThrough : TextDecoration.none,
+                color: _todoList[i].isClear ? Colors.grey : Colors.black,
+              ),
+            ),
+            leading: CircleAvatar(
+              child: Text(_todoList[i].name.substring(0, 1)),
+            ),
+            onTap: (){
+              _negateItemStatus(i);
+            },
+
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addNewItem,
-        tooltip: 'Increment',
+        onPressed: _openAddItemDialog,
+        tooltip: 'Add Item',
         child: const Icon(Icons.add),
       ),
     );
