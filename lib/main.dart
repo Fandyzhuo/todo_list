@@ -59,9 +59,38 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _deleteItem(int itemIndex){
+    setState(() {
+      _todoList.removeAt(itemIndex);
+    });
+  }
+
   void _negateItemStatus(int itemIndex){
     setState(() {
       _todoList[itemIndex] = _todoList[itemIndex].copyWith(isClear: !_todoList[itemIndex].isClear);
+    });
+  }
+
+  void _openDeletePrompt(int itemIndex){
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text('Are you sure you wanto to delete?'),
+        actions: [
+          TextButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          TextButton(
+            child: Text('Yes'),
+            onPressed: () {
+              _deleteItem(itemIndex);
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
     });
   }
 
@@ -111,7 +140,9 @@ class _MyHomePageState extends State<MyHomePage> {
             onTap: (){
               _negateItemStatus(i);
             },
-
+            onLongPress: (){
+              _openDeletePrompt(i);
+            },
           );
         },
       ),
